@@ -8,18 +8,18 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
- * To-Do List class for Assignment 5, CEN 4025C-15911, Software Development II, Valencia College.
+ * To-Do List class for Assignment 7, CEN 4025C-15911, Software Development II, Valencia College.
  *
  * @author	Stephen Sturges Jr
- * @version	10/08/2022
+ * @version	10/16/2022
  */
 public class ToDoList {
     // Scanner for this Object.
     private static Scanner input = new Scanner(System.in);
 
-    // Create an ArrayList to hold To-Do List items.
-//    private ArrayList<String> toDoList = new ArrayList<String>();
+    // Create ArrayLists to hold To-Do List tasks and task IDs.
     public ArrayList<String> toDoList = new ArrayList<String>();
+    public ArrayList<Integer> taskIDs = new ArrayList<Integer>();
 
     // Constants.
     private final String noTasksMessage = "\nThere are no tasks on the list.\n";
@@ -35,7 +35,19 @@ public class ToDoList {
     }
 
     /**
+     * Adds a task to the To-Do list. (Overloaded method.)
+     *
+     * @param task	A String entered by the user describing the item they wish to put on the To-Do list.
+     * @deprecated  Not used in the web application.
+     */
+    public void addTask(String task) {
+        toDoList.add(task);
+    }
+
+    /**
      * Requests user to enter a task and then adds the task to the tasks table in the database.
+     *
+     * @deprecated  Not used in the web application.
      */
     public void addTaskDB(){
         String task = userInputString("Please enter your task: ");
@@ -59,13 +71,28 @@ public class ToDoList {
     } // End of addTasksDB method.
 
     /**
-     * Adds a task to the To-Do list. (Overloaded method.)
+     * A modification of addTaskDB for use in add.jsp to add tasks to the to-do list stored in MySQL.
      *
-     * @param task	A String entered by the user describing the item they wish to put on the To-Do list.
+     * @param task  String representing the text to be added to the to-do list.
      */
-    public void addTask(String task) {
-        toDoList.add(task);
-    }
+    public void addTaskWeb(String task){
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            Tasks newTask = new Tasks();
+            newTask.setTask(task);
+            entityManager.persist(newTask);
+            transaction.commit();
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+            entityManagerFactory.close();
+        }
+    } // End of addTaskWeb method.
 
     /**
      * Loops through the ArrayList containing To-Do list tasks and outputs tasks to the console.
@@ -82,11 +109,13 @@ public class ToDoList {
             }
         }
         System.out.println(); // Blank line for formatting.
-    }
+    } // End of displayTasks method.
 
     /**
      * Queries the database and displays all tasks from the tasks table in order they were entered. Each task entry is
      * preceded by an integer counting up from 1.
+     *
+     * @deprecated  Not used in the web application.
      */
     public void displayTasksDB() {
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
@@ -127,7 +156,7 @@ public class ToDoList {
                 System.out.println("\nTask [" + (index - 1) + "] removed.\n");
             }
         }
-    }
+    } // End of removeTask method.
 
     /**
      * Removes a task from the To-Do list. (Overloaded method.)
@@ -141,11 +170,13 @@ public class ToDoList {
         } else {
             toDoList.remove(index - 1);
         }
-    }
+    } // End of removeTask method.
 
     /**
      * Displays a list of tasks and their associated Task ID number, prompts the user for the Task ID number of the task
      * to remove, and submits a query that deletes the record associated with the given Task ID number.
+     *
+     * @deprecated  Not used in the web application.
      */
     public void removeTaskDB() {
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
@@ -173,6 +204,79 @@ public class ToDoList {
             entityManagerFactory.close();
         }
     } // End of removeTaskDB method.
+
+    /**
+     * Removes the given task from the database. A modification of removeTaskDB.
+     *
+     * @param taskIDToRemove    int the Task ID number of the task you wish to remove.
+     */
+    public void removeTaskWeb(int taskIDToRemove) {
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            Query removeTask = entityManager.createNativeQuery("DELETE FROM tasks WHERE task_id =:taskIDToRemove");
+            removeTask.setParameter("taskIDToRemove",taskIDToRemove);
+            removeTask.executeUpdate(); // This is needed to actually remove the task entry.
+            transaction.commit();
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+            entityManagerFactory.close();
+        }
+    } // End of removeTaskWeb method.
+
+    /**
+     * Retrieves tasks from the database and stores them in an ArrayList. This is needed so that index.jsp can
+     * loop through the ArrayList instead of querying the server to display each row.
+     */
+    // Below are new variables and methods for use with the Web Application.
+    public void setTasksList() {
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            TypedQuery<Tasks> allTasks = entityManager.createNamedQuery("displayTasks", Tasks.class);
+            for (Tasks task : allTasks.getResultList()) {
+                toDoList.add(task.getTask());
+            }
+            transaction.commit();
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+            entityManagerFactory.close();
+        }
+    } // End of setTasksList method.
+
+    /**
+     * Retrieves Task IDs from the database and stores them in an ArrayList. This is needed so that index.jsp can
+     * loop through the ArrayList instead of querying the server to display each row.
+     */
+    public void setTaskIDsList() {
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            TypedQuery<Tasks> allTasks = entityManager.createNamedQuery("displayTasks", Tasks.class);
+            for (Tasks task : allTasks.getResultList()) {
+                taskIDs.add(task.getTaskId());
+            }
+            transaction.commit();
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            entityManager.close();
+            entityManagerFactory.close();
+        }
+    } // End of setTaskIDsList method.
 
     /**
      * Returns the size of the ArrayList containing To-Do list items.
@@ -225,86 +329,5 @@ public class ToDoList {
         String userInput = input.nextLine();
         return userInput;
     }
-
-    // Below are new variables and methods for use with the Web Application.
-    public void setTasksList() {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        try {
-            transaction.begin();
-            TypedQuery<Tasks> allTasks = entityManager.createNamedQuery("displayTasks", Tasks.class);
-            for (Tasks task : allTasks.getResultList()) {
-                toDoList.add(task.getTask());
-            }
-            transaction.commit();
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            entityManager.close();
-            entityManagerFactory.close();
-        }
-    } // End of setTasksList method.
-
-    public ArrayList<Integer> taskIDs = new ArrayList<Integer>();
-
-    public void setTaskIDsList() {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        try {
-            transaction.begin();
-            TypedQuery<Tasks> allTasks = entityManager.createNamedQuery("displayTasks", Tasks.class);
-            for (Tasks task : allTasks.getResultList()) {
-                taskIDs.add(task.getTaskId());
-            }
-            transaction.commit();
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            entityManager.close();
-            entityManagerFactory.close();
-        }
-    } // End of setTasksList method.
-
-    public void removeTaskWeb(int taskIDToRemove) {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        try {
-            transaction.begin();
-            Query removeTask = entityManager.createNativeQuery("DELETE FROM tasks WHERE task_id =:taskIDToRemove");
-            removeTask.setParameter("taskIDToRemove",taskIDToRemove);
-            removeTask.executeUpdate(); // This is needed to actually remove the task entry.
-            transaction.commit();
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            entityManager.close();
-            entityManagerFactory.close();
-        }
-    } // End of removeTaskDB method.
-
-    public void addTaskWeb(String task){
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        try {
-            transaction.begin();
-            Tasks newTask = new Tasks();
-            newTask.setTask(task);
-            entityManager.persist(newTask);
-            transaction.commit();
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            entityManager.close();
-            entityManagerFactory.close();
-        }
-    } // End of addTasksDB method.
 
 } // End of ToDoList class.
