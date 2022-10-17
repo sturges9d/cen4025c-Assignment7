@@ -295,6 +295,7 @@ public class ToDoList {
      * @param lowerBound	An integer representing the lowest acceptable value the user can input.
      * @param upperBound	An integer representing the highest acceptable value the user can input.
      * @return				Validated integer input from the user.
+     * @deprecated  Not used in the web application.
      */
     public static int userInputInt(String inputPrompt, int lowerBound, int upperBound) {
         int userInput = 0;	// Return variable.
@@ -323,6 +324,7 @@ public class ToDoList {
      *
      * @param inputPrompt	A string prompting the user for input.
      * @return				A string containing the user's input.
+     * @deprecated  Not used in the web application.
      */
     public static String userInputString(String inputPrompt) {
         System.out.print(inputPrompt);
