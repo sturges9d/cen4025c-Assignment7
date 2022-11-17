@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>CEN 4025C - Assignment 7: Todo List Web Application</title>
 </head>
-<body>
+<body style="background-color: dodgerblue;">
     <h1>CEN 4025C - Assignment 7: Todo List Web Application</h1>
     <br/>
     <table border="1">
