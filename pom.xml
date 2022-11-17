@@ -10,14 +10,16 @@
     <name>cen4025c-Assignment7</name>
     <packaging>war</packaging>
 
+    <!-- The following properties control the Maven build and specifies the JUnit version. -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <junit.version>5.8.2</junit.version>
+        <junit.version>5.9.0</junit.version>
     </properties>
 
     <dependencies>
+        <!-- The next three dependencies are needed for Hibernate. -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -34,6 +36,7 @@
             <version>5.0.0</version>
             <scope>provided</scope>
         </dependency>
+        <!-- The next two dependencies are required for JUnit. -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -46,6 +49,7 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- The below dependency is for MySQL JDBC Connector -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -55,6 +59,7 @@
 
     <build>
         <plugins>
+            <!-- The following plugin is required for Maven to create a .war file. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
